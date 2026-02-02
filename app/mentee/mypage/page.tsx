@@ -41,7 +41,6 @@ export default function MyPage() {
   const loadMyPageData = async () => {
     try {
       setLoading(true);
-      setLoading(false);
       
       // 실제 구현에서는 API 호출
       // const data = await menteeAPI.getMyPage();
