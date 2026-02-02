@@ -54,8 +54,6 @@ export default function MentorPage() {
   const loadMentees = async () => {
     try {
       setLoading(true);
-      // 실제 API 호출 시뮬레이션을 위한 최소 딜레이
-      await new Promise(resolve => setTimeout(resolve, 100));
       
       // 샘플 데이터
       setMentees([

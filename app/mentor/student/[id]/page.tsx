@@ -102,8 +102,7 @@ export default function MentorStudentDetailPage() {
   const loadStudentData = async () => {
     try {
       setLoading(true);
-      // 실제 API 호출 시뮬레이션을 위한 최소 딜레이
-      await new Promise(resolve => setTimeout(resolve, 100));
+      setLoading(false);
 
       // 샘플 데이터
       setStudentDetail({
@@ -393,7 +392,7 @@ export default function MentorStudentDetailPage() {
                   {feedback.summary && (
                     <div className="mb-3 p-3 bg-amber-50 border-l-2 border-amber-500 rounded">
                       <p className="text-sm font-medium text-amber-900">
-                        주요 피드백: {feedback.summary}
+                        주��� 피드백: {feedback.summary}
                       </p>
                     </div>
                   )}
