@@ -36,9 +36,12 @@ export default function LoginPage() {
 
     try {
       setLoading(true);
-      await login(email, password);
+      const response = await login(email, password);
       toast.success('로그인 되었습니다');
-      router.push('/');
+      // 로그인 직후 user 객체 업데이트 지연 방지하기 위해 setTimeout 사용
+      setTimeout(() => {
+        router.push(isMentor ? '/mentor' : '/mentee');
+      }, 100);
     } catch (error) {
       toast.error(error instanceof Error ? error.message : '로그인에 실패했습니다');
     } finally {
@@ -47,14 +50,17 @@ export default function LoginPage() {
   };
 
   // 테스트 계정으로 자동 로그인
-  const autoLogin = async (testEmail: string, testPassword: string) => {
+  const autoLogin = async (testEmail: string, testPassword: string, isMentorAccount: boolean) => {
     try {
       setLoading(true);
       setEmail(testEmail);
       setPassword(testPassword);
+      setIsMentor(isMentorAccount);
       await login(testEmail, testPassword);
       toast.success('테스트 계정으로 로그인했습니다');
-      router.push('/');
+      setTimeout(() => {
+        router.push(isMentorAccount ? '/mentor' : '/mentee');
+      }, 100);
     } catch (error) {
       toast.error('테스트 로그인에 실패했습니다');
     } finally {
@@ -142,7 +148,7 @@ export default function LoginPage() {
                 type="button"
                 variant="outline"
                 className="w-full bg-transparent"
-                onClick={() => autoLogin('mentor@example.com', 'password123')}
+                onClick={() => autoLogin('mentor@example.com', 'password123', true)}
                 disabled={loading}
               >
                 멘토 테스트 계정으로 로그인
@@ -151,7 +157,7 @@ export default function LoginPage() {
                 type="button"
                 variant="outline"
                 className="w-full bg-transparent"
-                onClick={() => autoLogin('mentee1@example.com', 'password123')}
+                onClick={() => autoLogin('mentee1@example.com', 'password123', false)}
                 disabled={loading}
               >
                 멘티 테스트 계정으로 로그인

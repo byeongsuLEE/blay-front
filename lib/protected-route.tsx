@@ -16,15 +16,22 @@ export function ProtectedRoute({ children, requiredRole }: ProtectedRouteProps) 
   const { isAuthenticated, user, loading } = useAuth();
 
   useEffect(() => {
-    if (!loading && !isAuthenticated) {
+    // 로딩 중일 때는 아무것도 하지 않음
+    if (loading) {
+      return;
+    }
+
+    // 인증되지 않았으면 로그인 페이지로 이동
+    if (!isAuthenticated) {
       router.push('/login');
       return;
     }
 
+    // 역할 확인
     if (requiredRole && user?.role !== requiredRole) {
       router.push(user?.role === 'mentor' ? '/mentor' : '/mentee');
     }
-  }, [isAuthenticated, loading, requiredRole, user, router]);
+  }, [isAuthenticated, loading, requiredRole, user?.role, router]);
 
   if (loading) {
     return (

@@ -9,16 +9,18 @@ export default function Home() {
   const { isAuthenticated, user, loading } = useAuth();
 
   useEffect(() => {
-    if (!loading) {
-      if (!isAuthenticated) {
-        router.push('/login');
-      } else if (user?.role === 'mentor') {
-        router.push('/mentor');
-      } else {
-        router.push('/mentee');
-      }
+    if (loading) {
+      return;
     }
-  }, [isAuthenticated, loading, user, router]);
+
+    if (!isAuthenticated) {
+      router.push('/login');
+    } else if (user?.role === 'mentor') {
+      router.push('/mentor');
+    } else {
+      router.push('/mentee');
+    }
+  }, [isAuthenticated, loading, user?.role, router]);
 
   return (
     <div className="flex items-center justify-center min-h-screen">
