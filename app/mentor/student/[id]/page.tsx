@@ -88,7 +88,7 @@ export default function MentorStudentDetailPage() {
   useEffect(() => {
     loadStudentData();
     loadTemplates();
-  }, [studentId, selectedDate]);
+  }, [studentId]);
 
   const loadTemplates = async () => {
     try {
@@ -103,7 +103,7 @@ export default function MentorStudentDetailPage() {
     try {
       setLoading(true);
       // 실제 API 호출 시뮬레이션을 위한 최소 딜레이
-      await new Promise(resolve => setTimeout(resolve, 300));
+      await new Promise(resolve => setTimeout(resolve, 100));
 
       // 샘플 데이터
       setStudentDetail({

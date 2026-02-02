@@ -3,7 +3,7 @@
 import React from "react"
 
 import { useRouter } from 'next/navigation';
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { useAuth } from './auth-context';
 
 interface ProtectedRouteProps {
@@ -14,12 +14,20 @@ interface ProtectedRouteProps {
 export function ProtectedRoute({ children, requiredRole }: ProtectedRouteProps) {
   const router = useRouter();
   const { isAuthenticated, user, loading } = useAuth();
+  const hasCheckedAuth = useRef(false);
 
   useEffect(() => {
     // 로딩 중일 때는 아무것도 하지 않음
     if (loading) {
       return;
     }
+
+    // 이미 확인했으면 다시 확인하지 않음
+    if (hasCheckedAuth.current) {
+      return;
+    }
+
+    hasCheckedAuth.current = true;
 
     // 인증되지 않았으면 로그인 페이지로 이동
     if (!isAuthenticated) {

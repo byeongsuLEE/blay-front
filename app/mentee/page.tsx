@@ -35,16 +35,16 @@ export default function MenteePlannerPage() {
 
   const dateString = format(currentDate, 'yyyy-MM-dd');
 
-  // 플래너 데이터 로드
+  // 플래너 데이터 로드 (초기 마운트시만)
   useEffect(() => {
     loadPlannerData();
-  }, [currentDate]);
+  }, []);
 
   const loadPlannerData = async () => {
     try {
       setLoading(true);
       // 실제 API 호출 시뮬레이션을 위한 최소 딜레이
-      await new Promise(resolve => setTimeout(resolve, 300));
+      await new Promise(resolve => setTimeout(resolve, 100));
       
       // 실제 구현에서는 멘토가 지정한 할 일과 멘티가 추가한 할 일을 모두 가져와야 합니다
       // 여기서는 샘플 데이터를 사용합니다

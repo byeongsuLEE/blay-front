@@ -55,18 +55,18 @@ export function MentorFeedbackPageClient() {
     loadStudents();
   }, []);
 
-  // 선택된 학생/날짜가 변경되면 피드백 로드
+  // 선택된 학생이 변경되면 피드백 로드
   useEffect(() => {
     if (selectedStudent) {
       loadFeedbackList();
     }
-  }, [selectedStudent, selectedDate]);
+  }, [selectedStudent?.id]);
 
   const loadStudents = async () => {
     try {
       setLoading(true);
       // 실제 API 호출 시뮬레이션을 위한 최소 딜레이
-      await new Promise(resolve => setTimeout(resolve, 300));
+      await new Promise(resolve => setTimeout(resolve, 100));
       
       // 샘플 데이터
       const sampleStudents = [
@@ -98,7 +98,7 @@ export function MentorFeedbackPageClient() {
     try {
       setLoading(true);
       // 실제 API 호출 시뮬레이션을 위한 최소 딜레이
-      await new Promise(resolve => setTimeout(resolve, 300));
+      await new Promise(resolve => setTimeout(resolve, 100));
       
       // 샘플 데이터
       setFeedbackList([

@@ -63,14 +63,16 @@ export default function MentorAssignmentDetailPage() {
   const [newComment, setNewComment] = useState('');
 
   useEffect(() => {
-    loadAssignmentData();
+    if (studentId && assignmentId) {
+      loadAssignmentData();
+    }
   }, [studentId, assignmentId]);
 
   const loadAssignmentData = async () => {
     try {
       setLoading(true);
       // 실제 API 호출 시뮬레이션을 위한 최소 딜레이
-      await new Promise(resolve => setTimeout(resolve, 300));
+      await new Promise(resolve => setTimeout(resolve, 100));
       
       // 실제 구현에서는 API 호출
       // const data = await mentorAPI.getAssignmentDetail(studentId, assignmentId);
