@@ -54,6 +54,9 @@ export default function MentorPage() {
   const loadMentees = async () => {
     try {
       setLoading(true);
+      // 실제 API 호출 시뮬레이션을 위한 최소 딜레이
+      await new Promise(resolve => setTimeout(resolve, 300));
+      
       // 샘플 데이터
       setMentees([
         {
@@ -76,6 +79,7 @@ export default function MentorPage() {
         },
       ]);
     } catch (error) {
+      console.error('[v0] 학생 목록 로드 에러:', error);
       toast.error('학생 목록을 불러올 수 없습니다');
     } finally {
       setLoading(false);

@@ -102,6 +102,8 @@ export default function MentorStudentDetailPage() {
   const loadStudentData = async () => {
     try {
       setLoading(true);
+      // 실제 API 호출 시뮬레이션을 위한 최소 딜레이
+      await new Promise(resolve => setTimeout(resolve, 300));
 
       // 샘플 데이터
       setStudentDetail({
@@ -249,7 +251,7 @@ export default function MentorStudentDetailPage() {
           onClick={() => router.back()}
         >
           <ArrowLeft className="w-4 h-4 mr-2" />
-          돌아가기
+          돌아���기
         </Button>
         <Button
           onClick={() => setShowAssignmentDialog(true)}

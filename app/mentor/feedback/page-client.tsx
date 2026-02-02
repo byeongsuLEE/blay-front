@@ -65,6 +65,9 @@ export function MentorFeedbackPageClient() {
   const loadStudents = async () => {
     try {
       setLoading(true);
+      // 실제 API 호출 시뮬레이션을 위한 최소 딜레이
+      await new Promise(resolve => setTimeout(resolve, 300));
+      
       // 샘플 데이터
       const sampleStudents = [
         { id: '1', name: '김멘티', email: 'mentee1@example.com' },
@@ -82,6 +85,7 @@ export function MentorFeedbackPageClient() {
         setSelectedStudent(sampleStudents[0]);
       }
     } catch (error) {
+      console.error('[v0] 학생 목록 로드 에러:', error);
       toast.error('학생 목록을 불러올 수 없습니다');
     } finally {
       setLoading(false);
@@ -93,6 +97,9 @@ export function MentorFeedbackPageClient() {
 
     try {
       setLoading(true);
+      // 실제 API 호출 시뮬레이션을 위한 최소 딜레이
+      await new Promise(resolve => setTimeout(resolve, 300));
+      
       // 샘플 데이터
       setFeedbackList([
         {
@@ -110,6 +117,7 @@ export function MentorFeedbackPageClient() {
         },
       ]);
     } catch (error) {
+      console.error('[v0] 피드백 로드 에러:', error);
       toast.error('피드백을 불러올 수 없습니다');
     } finally {
       setLoading(false);

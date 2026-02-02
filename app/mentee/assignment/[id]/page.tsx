@@ -59,6 +59,9 @@ export default function AssignmentDetailPage() {
   const loadAssignmentDetail = async () => {
     try {
       setLoading(true);
+      // 실제 API 호출 시뮬레이션을 위한 최소 딜레이
+      await new Promise(resolve => setTimeout(resolve, 300));
+      
       // 실제 구현에서는 API 호출
       // const data = await menteeAPI.getAssignmentDetail(assignmentId);
       
@@ -87,6 +90,7 @@ export default function AssignmentDetailPage() {
         },
       ]);
     } catch (error) {
+      console.error('[v0] 과제 정보 로드 에러:', error);
       toast.error('과제 정보를 불러올 수 없습니다');
       router.back();
     } finally {
