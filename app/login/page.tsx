@@ -2,7 +2,7 @@
 
 import React from "react"
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/lib/auth-context';
 import { Button } from '@/components/ui/button';
@@ -21,10 +21,11 @@ export default function LoginPage() {
   const [isMentor, setIsMentor] = useState(false);
 
   // 이미 로그인되어 있으면 대시보드로 이동
-  if (isAuthenticated && user) {
-    router.push(user.role === 'mentor' ? '/mentor' : '/mentee');
-    return null;
-  }
+  useEffect(() => {
+    if (isAuthenticated && user) {
+      router.push(user.role === 'mentor' ? '/mentor' : '/mentee');
+    }
+  }, [isAuthenticated, user, router]);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
