@@ -6,7 +6,7 @@ import { ProtectedRoute } from '@/lib/protected-route';
 import { useAuth } from '@/lib/auth-context';
 import { Button } from '@/components/ui/button';
 import { useRouter } from 'next/navigation';
-import { LogOut, Users, BookOpen } from 'lucide-react';
+import { LogOut, Users, BookOpen, Plus } from 'lucide-react';
 import { toast } from 'sonner';
 import { useState } from 'react';
 
@@ -19,6 +19,11 @@ function MentorSidebar({ isOpen, onClose }: SidebarProps) {
   const router = useRouter();
 
   const navigationItems = [
+    {
+      label: '과제 등록',
+      href: '/mentor/assignment',
+      icon: Plus,
+    },
     {
       label: '학생 관리',
       href: '/mentor',
