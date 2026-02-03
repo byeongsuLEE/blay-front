@@ -33,6 +33,7 @@ export default function MenteePlannerPage() {
   const [selectedRecurringDays, setSelectedRecurringDays] = useState<('월' | '화' | '수' | '목' | '금' | '토' | '일')[]>([]);
   const [selectedWeakness, setSelectedWeakness] = useState<string>('');
   const [activeTab, setActiveTab] = useState<'planner' | 'mypage' | 'feedback'>('planner');
+  const [feedbackFilter, setFeedbackFilter] = useState<string>('전체');
   const quote = '명언'; // Declare quote variable
   const daysUntilGoal = 10; // Declare daysUntilGoal variable
 
@@ -126,9 +127,80 @@ export default function MenteePlannerPage() {
           {
             id: 'f1',
             subject: '국어',
-            summary: '문법 이해가 좋습니다',
+            summary: '문법 이해가 우수합니다',
             content: '교과서 내용을 잘 이해하고 있으신 것 같습니다. 다만 작문에서 문장 구조를 더 신경써주세요.',
             createdAt: new Date().toISOString(),
+          },
+          {
+            id: 'f2',
+            subject: '영어',
+            summary: '발음과 억양이 개선되었습니다',
+            content: '리스닝 실력이 눈에 띄게 향상되었습니다. 문법은 더 꾸준한 연습이 필요합니다.',
+            createdAt: new Date().toISOString(),
+          },
+          {
+            id: 'f3',
+            subject: '수학',
+            summary: '개념 이해도가 높습니다',
+            content: '미분과 적분 개념을 잘 이해했습니다. 응용문제에 좀 더 집중해보세요.',
+            createdAt: new Date().toISOString(),
+          },
+          {
+            id: 'f4',
+            subject: '국어',
+            content: '비문학 읽기 속도가 많이 개선되었습니다. 어휘력을 더 넓혀보세요.',
+            createdAt: new Date(Date.now() - 86400000).toISOString(),
+          },
+          {
+            id: 'f5',
+            subject: '영어',
+            summary: '문법 실력이 향상되었습니다',
+            content: '현재형과 과거형을 잘 구분하고 있습니다. 더 복잡한 시제에 도전해보세요.',
+            createdAt: new Date(Date.now() - 86400000).toISOString(),
+          },
+          {
+            id: 'f6',
+            subject: '수학',
+            content: '계산 능력이 빨라졌습니다. 실수를 줄이기 위해 검산 습관을 들여보세요.',
+            createdAt: new Date(Date.now() - 86400000).toISOString(),
+          },
+          {
+            id: 'f7',
+            subject: '국어',
+            content: '한자 단어를 많이 배웠습니다. 일상 생활에서도 써보세요.',
+            createdAt: new Date(Date.now() - 172800000).toISOString(),
+          },
+          {
+            id: 'f8',
+            subject: '영어',
+            content: '회화 자신감이 생겼습니다. 더 많은 원어민과 대화해보세요.',
+            createdAt: new Date(Date.now() - 172800000).toISOString(),
+          },
+          {
+            id: 'f9',
+            subject: '수학',
+            summary: '문제 풀이 방법이 체계적입니다',
+            content: '단계별 풀이가 명확합니다. 더 빠른 풀이법을 익혀보세요.',
+            createdAt: new Date(Date.now() - 259200000).toISOString(),
+          },
+          {
+            id: 'f10',
+            subject: '국어',
+            content: '작문 실력이 많이 발전했습니다. 더 다양한 표현을 사용해보세요.',
+            createdAt: new Date(Date.now() - 259200000).toISOString(),
+          },
+          {
+            id: 'f11',
+            subject: '플래너',
+            summary: '시간 관리가 잘 되고 있습니다',
+            content: '계획한 일정을 잘 따르고 있습니다. 이 페이스를 유지해주세요.',
+            createdAt: new Date().toISOString(),
+          },
+          {
+            id: 'f12',
+            subject: '영어',
+            content: '단어 암기율이 높습니다. 꾸준한 복습으로 장기기억을 만들어보세요.',
+            createdAt: new Date(Date.now() - 345600000).toISOString(),
           },
         ]);
       } catch (error) {
@@ -539,24 +611,46 @@ export default function MenteePlannerPage() {
             <div>
               <h3 className="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">
                 <Calendar className="w-5 h-5 text-gray-600" />
-                어제의 피드백
+                어제의 피드백 ({feedbacks.filter(f => Math.abs(new Date(f.createdAt).getTime() - (Date.now() - 86400000)) < 86400000).length}개)
               </h3>
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-                {feedbacks.slice(0, 2).map((feedback, idx) => (
-                  <Card
-                    key={idx}
-                    className="p-4 rounded-lg border-2 border-gray-200 hover:border-gray-400 hover:shadow-md transition cursor-pointer"
-                  >
-                    <div className="flex items-center gap-2 mb-2">
-                      <span className="px-2 py-1 bg-blue-100 text-blue-700 text-xs font-semibold rounded">
-                        {feedback.subject}
-                      </span>
-                    </div>
-                    <p className="text-sm font-medium text-gray-900 line-clamp-2">
-                      {feedback.summary || feedback.content}
-                    </p>
-                  </Card>
-                ))}
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                {feedbacks
+                  .filter(f => Math.abs(new Date(f.createdAt).getTime() - (Date.now() - 86400000)) < 86400000)
+                  .map((feedback, idx) => (
+                    <button
+                      key={idx}
+                      onClick={() => router.push(`/mentee/assignment/${feedback.id}`)}
+                      className={`p-3 rounded-lg border-2 hover:shadow-md transition text-left ${
+                        feedback.subject === '국어'
+                          ? 'border-red-300 bg-red-50 hover:border-red-500 hover:bg-red-100'
+                          : feedback.subject === '영어'
+                          ? 'border-blue-300 bg-blue-50 hover:border-blue-500 hover:bg-blue-100'
+                          : feedback.subject === '수학'
+                          ? 'border-green-300 bg-green-50 hover:border-green-500 hover:bg-green-100'
+                          : 'border-purple-300 bg-purple-50 hover:border-purple-500 hover:bg-purple-100'
+                      }`}
+                    >
+                      <div className="flex items-center justify-between mb-2">
+                        <span
+                          className="px-2 py-1 rounded text-xs font-bold text-white text-center"
+                          style={
+                            feedback.subject === '국어'
+                              ? { backgroundColor: '#dc2626' }
+                              : feedback.subject === '영어'
+                              ? { backgroundColor: '#2563eb' }
+                              : feedback.subject === '수학'
+                              ? { backgroundColor: '#16a34a' }
+                              : { backgroundColor: '#9333ea' }
+                          }
+                        >
+                          {feedback.subject}
+                        </span>
+                      </div>
+                      <p className="text-xs font-medium text-gray-900 line-clamp-2">
+                        {feedback.summary || feedback.content.slice(0, 30)}
+                      </p>
+                    </button>
+                  ))}
               </div>
             </div>
 
@@ -565,15 +659,15 @@ export default function MenteePlannerPage() {
               <div className="mb-6">
                 <h3 className="text-lg font-bold text-gray-800 mb-4">피드백 보기</h3>
                 <div className="flex gap-2 flex-wrap">
-                  {['전체', '국어', '영어', '수학', '플래너'].map((filter) => (
+                  {['전체', '국어', '영어', '수학', '플래너', '학습 목표'].map((filter) => (
                     <button
                       key={filter}
-                      className="px-4 py-2 rounded-full font-medium transition border-2 text-sm"
-                      style={
-                        filter === '전체'
-                          ? { backgroundColor: '#ec4899', borderColor: '#ec4899', color: 'white' }
-                          : { backgroundColor: 'transparent', borderColor: '#e5e7eb', color: '#6b7280' }
-                      }
+                      onClick={() => setFeedbackFilter(filter)}
+                      className={`px-4 py-2 rounded-full font-medium transition border-2 text-sm ${
+                        feedbackFilter === filter
+                          ? 'bg-pink-500 border-pink-500 text-white'
+                          : 'bg-transparent border-gray-300 text-gray-700 hover:border-pink-400'
+                      }`}
                     >
                       {filter}
                     </button>
@@ -583,55 +677,57 @@ export default function MenteePlannerPage() {
 
               {/* 피드백 카드 목록 */}
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-                {feedbacks.map((feedback, idx) => (
-                  <Card
-                    key={idx}
-                    onClick={() => router.push(`/mentee/assignment/${feedback.id}`)}
-                    className={`p-5 rounded-lg border-2 hover:shadow-lg transition cursor-pointer ${
-                      feedback.subject === '국어'
-                        ? 'border-red-200 bg-red-50 hover:border-red-400'
-                        : feedback.subject === '영어'
-                        ? 'border-blue-200 bg-blue-50 hover:border-blue-400'
-                        : feedback.subject === '수학'
-                        ? 'border-green-200 bg-green-50 hover:border-green-400'
-                        : 'border-gray-200 bg-gray-50 hover:border-gray-400'
-                    }`}
-                  >
-                    <div className="flex items-start justify-between mb-2">
-                      <span
-                        className="px-3 py-1 rounded-full text-xs font-bold text-white"
-                        style={
-                          feedback.subject === '국어'
-                            ? { backgroundColor: '#dc2626' }
-                            : feedback.subject === '영어'
-                            ? { backgroundColor: '#2563eb' }
-                            : feedback.subject === '수학'
-                            ? { backgroundColor: '#16a34a' }
-                            : { backgroundColor: '#6b7280' }
-                        }
-                      >
-                        {feedback.subject}
-                      </span>
-                      {feedback.summary && (
-                        <span className="text-xs px-2 py-1 bg-yellow-100 text-yellow-700 rounded font-bold">
-                          핵심
+                {feedbacks
+                  .filter(f => feedbackFilter === '전체' || f.subject === feedbackFilter || (feedbackFilter === '학습 목표' && f.summary))
+                  .map((feedback, idx) => (
+                    <button
+                      key={idx}
+                      onClick={() => router.push(`/mentee/assignment/${feedback.id}`)}
+                      className={`p-5 rounded-lg border-2 hover:shadow-lg transition text-left ${
+                        feedback.subject === '국어'
+                          ? 'border-red-200 bg-red-50 hover:border-red-400 hover:bg-red-100'
+                          : feedback.subject === '영어'
+                          ? 'border-blue-200 bg-blue-50 hover:border-blue-400 hover:bg-blue-100'
+                          : feedback.subject === '수학'
+                          ? 'border-green-200 bg-green-50 hover:border-green-400 hover:bg-green-100'
+                          : 'border-purple-200 bg-purple-50 hover:border-purple-400 hover:bg-purple-100'
+                      }`}
+                    >
+                      <div className="flex items-start justify-between mb-2">
+                        <span
+                          className="px-3 py-1 rounded-full text-xs font-bold text-white"
+                          style={
+                            feedback.subject === '국어'
+                              ? { backgroundColor: '#dc2626' }
+                              : feedback.subject === '영어'
+                              ? { backgroundColor: '#2563eb' }
+                              : feedback.subject === '수학'
+                              ? { backgroundColor: '#16a34a' }
+                              : { backgroundColor: '#9333ea' }
+                          }
+                        >
+                          {feedback.subject}
                         </span>
-                      )}
-                    </div>
-                    <p className="text-sm font-semibold text-gray-900 mb-2 line-clamp-2">
-                      {feedback.summary || feedback.content.slice(0, 40) + '...'}
-                    </p>
-                    <p className="text-xs text-gray-600 line-clamp-3">
-                      {feedback.content}
-                    </p>
-                    <div className="mt-3 flex items-center justify-between pt-3 border-t border-gray-300">
-                      <span className="text-xs text-gray-500">
-                        {format(new Date(feedback.createdAt), 'M월 d일', { locale: ko })}
-                      </span>
-                      <span className="text-xs font-medium text-pink-600">→ 과제 보기</span>
-                    </div>
-                  </Card>
-                ))}
+                        {feedback.summary && (
+                          <span className="text-xs px-2 py-1 bg-yellow-100 text-yellow-700 rounded font-bold">
+                            핵심
+                          </span>
+                        )}
+                      </div>
+                      <p className="text-sm font-semibold text-gray-900 mb-2 line-clamp-2">
+                        {feedback.summary || feedback.content.slice(0, 40) + '...'}
+                      </p>
+                      <p className="text-xs text-gray-600 line-clamp-3">
+                        {feedback.content}
+                      </p>
+                      <div className="mt-3 flex items-center justify-between pt-3 border-t border-gray-300">
+                        <span className="text-xs text-gray-500">
+                          {format(new Date(feedback.createdAt), 'M월 d일', { locale: ko })}
+                        </span>
+                        <span className="text-xs font-medium text-pink-600">→ 과제 보기</span>
+                      </div>
+                    </button>
+                  ))}
               </div>
             </div>
           </div>
