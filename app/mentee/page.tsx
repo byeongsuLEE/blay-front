@@ -30,8 +30,17 @@ export default function MenteePlannerPage() {
   const [newTodoSubject, setNewTodoSubject] = useState('국어');
   const [calendarViewMode, setCalendarViewMode] = useState<'month' | 'week'>('month');
   const [showNotification, setShowNotification] = useState(false);
+  const [selectedRecurringDays, setSelectedRecurringDays] = useState<('월' | '화' | '수' | '목' | '금' | '토' | '일')[]>([]);
+  const [selectedWeakness, setSelectedWeakness] = useState<string>('');
   const quote = '명언'; // Declare quote variable
   const daysUntilGoal = 10; // Declare daysUntilGoal variable
+
+  // 샘플 보완점 데이터
+  const weaknesses = [
+    { id: 'w1', name: '비문학 2지문', subject: '국어', materials: ['비문학_학습지_1.pdf', '비문학_분석법.pdf'] },
+    { id: 'w2', name: '영문법 시제', subject: '영어', materials: ['영문법_시제.pdf'] },
+    { id: 'w3', name: '미분 적분', subject: '수학', materials: ['미분적분_기초.pdf', '미분적분_심화.pdf'] },
+  ];
 
   const dateString = format(currentDate, 'yyyy-MM-dd');
 
@@ -139,13 +148,22 @@ export default function MenteePlannerPage() {
     }
 
     try {
-      await menteeAPI.addTodo({
+      const selectedWeaknessData = weaknesses.find(w => w.id === selectedWeakness);
+      const newTodo = {
         date: dateString,
         title: newTodoTitle,
         subject: newTodoSubject,
-      });
-      toast.success('할 일이 추가되었습니다');
+        recurringDays: selectedRecurringDays.length > 0 ? selectedRecurringDays : undefined,
+        weaknessId: selectedWeakness || undefined,
+        weaknessName: selectedWeaknessData?.name,
+        learningMaterials: selectedWeaknessData?.materials,
+      };
+
+      await menteeAPI.addTodo(newTodo);
+      toast.success(selectedRecurringDays.length > 0 ? `${selectedRecurringDays.join(', ')}에 반복되는 할 일이 추가되었습니다` : '할 일이 추가되었습니다');
       setNewTodoTitle('');
+      setSelectedRecurringDays([]);
+      setSelectedWeakness('');
       setIsAddingTodo(false);
       loadPlannerData();
     } catch (error) {
@@ -455,6 +473,63 @@ export default function MenteePlannerPage() {
                 <option>수학</option>
               </select>
             </div>
+
+            {/* 요일 반복 설정 */}
+            <div>
+              <Label className="text-gray-700 mb-2 block">반복 요일 (선택)</Label>
+              <div className="grid grid-cols-4 gap-2">
+                {['월', '화', '수', '목', '금', '토', '일'].map((day) => (
+                  <button
+                    key={day}
+                    onClick={() => {
+                      setSelectedRecurringDays((prev) =>
+                        prev.includes(day as any)
+                          ? prev.filter((d) => d !== day)
+                          : [...prev, day as any]
+                      );
+                    }}
+                    className={`py-2 px-3 rounded-md font-medium transition ${
+                      selectedRecurringDays.includes(day as any)
+                        ? 'bg-pink-500 text-white'
+                        : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                    }`}
+                  >
+                    {day}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* 보완점 선택 */}
+            <div>
+              <Label htmlFor="weakness" className="text-gray-700">
+                보완점 선택 (선택)
+              </Label>
+              <select
+                id="weakness"
+                value={selectedWeakness}
+                onChange={(e) => setSelectedWeakness(e.target.value)}
+                className="w-full px-3 py-2 border border-pink-200 rounded-md text-gray-900"
+              >
+                <option value="">없음</option>
+                {weaknesses.map((w) => (
+                  <option key={w.id} value={w.id}>
+                    {w.name} ({w.subject})
+                  </option>
+                ))}
+              </select>
+              {selectedWeakness && (
+                <div className="mt-2 p-2 bg-pink-50 rounded text-sm text-gray-700">
+                  <p className="font-medium">학습자료:</p>
+                  <ul className="list-disc list-inside">
+                    {weaknesses.find((w) => w.id === selectedWeakness)?.materials.map((m) => (
+                      <li key={m}>{m}</li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+            </div>
+
             <div className="flex justify-end gap-2 pt-4">
               <Button
                 variant="outline"

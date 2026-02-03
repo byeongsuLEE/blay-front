@@ -26,6 +26,19 @@ interface MyPageData {
   subjectStats: SubjectStat[];
   totalStudyMinutes: number;
   streak: number;
+  // 주간/월간 성취도
+  weeklyAchievements?: {
+    week: string; // "2024-W1"
+    completionRate: number;
+    tasksCompleted: number;
+    tasksTotal: number;
+  }[];
+  monthlyAchievements?: {
+    month: string; // "2024-01"
+    completionRate: number;
+    tasksCompleted: number;
+    tasksTotal: number;
+  }[];
 }
 
 export default function MyPage() {
@@ -72,6 +85,16 @@ export default function MyPage() {
         ],
         totalStudyMinutes: 4560,
         streak: 12,
+        weeklyAchievements: [
+          { week: '2024-W1', completionRate: 80, tasksCompleted: 16, tasksTotal: 20 },
+          { week: '2024-W2', completionRate: 85, tasksCompleted: 17, tasksTotal: 20 },
+          { week: '2024-W3', completionRate: 90, tasksCompleted: 18, tasksTotal: 20 },
+          { week: '2024-W4', completionRate: 75, tasksCompleted: 15, tasksTotal: 20 },
+        ],
+        monthlyAchievements: [
+          { month: '2024-01', completionRate: 82, tasksCompleted: 82, tasksTotal: 100 },
+          { month: '2024-02', completionRate: 88, tasksCompleted: 79, tasksTotal: 90 },
+        ],
       });
     } catch (error) {
       console.error('[v0] 마이페이지 데이터 로드 에러:', error);
@@ -186,6 +209,52 @@ export default function MyPage() {
           ))}
         </div>
       </Card>
+
+      {/* 주간 성취도 */}
+      {myPageData?.weeklyAchievements && myPageData.weeklyAchievements.length > 0 && (
+        <Card className="mb-6 p-6">
+          <h2 className="text-lg font-semibold text-gray-900 mb-4">주간 성취도</h2>
+          <div className="space-y-3">
+            {myPageData.weeklyAchievements.map((week) => (
+              <div key={week.week} className="border rounded-lg p-3 bg-blue-50">
+                <div className="flex items-center justify-between mb-2">
+                  <p className="font-medium text-gray-900">{week.week}</p>
+                  <Badge className="bg-blue-100 text-blue-700">
+                    {week.completionRate}%
+                  </Badge>
+                </div>
+                <Progress value={week.completionRate} className="h-2 mb-2" />
+                <p className="text-xs text-gray-600">
+                  완료: {week.tasksCompleted} / {week.tasksTotal}개
+                </p>
+              </div>
+            ))}
+          </div>
+        </Card>
+      )}
+
+      {/* 월간 성취도 */}
+      {myPageData?.monthlyAchievements && myPageData.monthlyAchievements.length > 0 && (
+        <Card className="mb-6 p-6">
+          <h2 className="text-lg font-semibold text-gray-900 mb-4">월간 성취도</h2>
+          <div className="space-y-3">
+            {myPageData.monthlyAchievements.map((month) => (
+              <div key={month.month} className="border rounded-lg p-3 bg-green-50">
+                <div className="flex items-center justify-between mb-2">
+                  <p className="font-medium text-gray-900">{month.month}</p>
+                  <Badge className="bg-green-100 text-green-700">
+                    {month.completionRate}%
+                  </Badge>
+                </div>
+                <Progress value={month.completionRate} className="h-2 mb-2" />
+                <p className="text-xs text-gray-600">
+                  완료: {month.tasksCompleted} / {month.tasksTotal}개
+                </p>
+              </div>
+            ))}
+          </div>
+        </Card>
+      )}
 
       {/* 상담받아보기 버튼 */}
       <div className="fixed bottom-4 right-4 left-4 sm:left-auto sm:w-auto">

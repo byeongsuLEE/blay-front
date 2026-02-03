@@ -30,6 +30,9 @@ interface Assignment {
   completed: boolean;
   completedAt?: string;
   createdAt: string;
+  // 학습자료 추가
+  weaknessName?: string;
+  learningMaterials?: string[];
 }
 
 interface Feedback {
@@ -51,6 +54,7 @@ export default function AssignmentDetailPage() {
   const [isUploadingProof, setIsUploadingProof] = useState(false);
   const [showUploadDialog, setShowUploadDialog] = useState(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [activeTab, setActiveTab] = useState<'materials' | 'proof'>('materials');
 
   useEffect(() => {
     loadAssignmentDetail();
@@ -76,6 +80,8 @@ export default function AssignmentDetailPage() {
         completed: true,
         completedAt: new Date().toISOString(),
         createdAt: new Date().toISOString(),
+        weaknessName: '현대시 분석',
+        learningMaterials: ['현대시_표현기법.pdf', '현대시_감상법.pdf', '은유와_비유.pdf'],
       });
 
       // 샘플 피드백 데이터
@@ -224,61 +230,128 @@ export default function AssignmentDetailPage() {
         </div>
       </div>
 
-      {/* 학습 자료 */}
-      {assignment.fileUrl && (
-        <Card className="mb-6 p-6">
-          <h2 className="text-lg font-semibold text-gray-900 mb-4">📚 학습 자료</h2>
-          <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg border">
-            <div className="flex items-center gap-3">
-              <FileText className="w-6 h-6 text-indigo-600" />
-              <div>
-                <p className="font-medium text-gray-900">
-                  {assignment.fileType === 'pdf' ? 'PDF 파일' : '설스터디 칼럼'}
-                </p>
-                <p className="text-xs text-gray-500">멘토가 제공한 자료입니다</p>
-              </div>
-            </div>
-            <Button
-              onClick={handleDownloadFile}
-              className="bg-indigo-600 hover:bg-indigo-700"
-            >
-              <Download className="w-4 h-4 mr-2" />
-              다운로드
-            </Button>
-          </div>
-        </Card>
-      )}
+      {/* 탭형 UI: 학습자료 / 과제 증명 */}
+      <Card className="mb-6">
+        {/* 탭 헤더 */}
+        <div className="flex border-b">
+          <button
+            onClick={() => setActiveTab('materials')}
+            className={`flex-1 px-4 py-3 font-medium text-center transition ${
+              activeTab === 'materials'
+                ? 'text-indigo-600 border-b-2 border-indigo-600 bg-indigo-50'
+                : 'text-gray-600 hover:bg-gray-50'
+            }`}
+          >
+            📚 학습자료
+          </button>
+          <button
+            onClick={() => setActiveTab('proof')}
+            className={`flex-1 px-4 py-3 font-medium text-center transition ${
+              activeTab === 'proof'
+                ? 'text-indigo-600 border-b-2 border-indigo-600 bg-indigo-50'
+                : 'text-gray-600 hover:bg-gray-50'
+            }`}
+          >
+            📷 과제 증명
+          </button>
+        </div>
 
-      {/* 멘토 피드백 */}
-      {feedbacks.length > 0 && (
-        <Card className="mb-6 p-6 border-2 border-blue-200 bg-blue-50">
-          <h2 className="text-lg font-semibold text-gray-900 mb-4">💭 멘토 피드백</h2>
-          <div className="space-y-4">
-            {feedbacks.map((feedback) => (
-              <div key={feedback.id} className="bg-white p-4 rounded-lg border border-blue-100">
-                <div className="flex items-center gap-2 mb-2">
-                  <Badge className="bg-blue-100 text-blue-700">{feedback.subject}</Badge>
-                  {feedback.summary && (
-                    <Badge className="bg-yellow-100 text-yellow-700">주요</Badge>
-                  )}
-                  <span className="text-xs text-gray-500 ml-auto">
-                    {new Date(feedback.createdAt).toLocaleDateString('ko-KR')}
-                  </span>
+        {/* 탭 콘텐츠 */}
+        <div className="p-6">
+          {/* 학습자료 탭 */}
+          {activeTab === 'materials' && (
+            <div>
+              {assignment.weaknessName && (
+                <div className="mb-4 p-3 bg-yellow-50 rounded border border-yellow-200">
+                  <p className="text-sm font-medium text-yellow-900">
+                    ⚠️ 보완점: <span className="font-bold">{assignment.weaknessName}</span>
+                  </p>
                 </div>
-                {feedback.summary && (
-                  <p className="font-medium text-gray-900 mb-2 text-blue-600">{feedback.summary}</p>
-                )}
-                <p className="text-sm text-gray-700 whitespace-pre-wrap leading-relaxed">
-                  {feedback.content}
-                </p>
-              </div>
-            ))}
-          </div>
-        </Card>
-      )}
+              )}
 
-      {/* 과제 증명 사진 */}
-      <Card className="p-6">
+              {assignment.fileUrl && (
+                <div className="mb-6">
+                  <h3 className="font-semibold text-gray-900 mb-3">멘토 제공 자료</h3>
+                  <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg border">
+                    <div className="flex items-center gap-3">
+                      <FileText className="w-6 h-6 text-indigo-600" />
+                      <div>
+                        <p className="font-medium text-gray-900">
+                          {assignment.fileType === 'pdf' ? 'PDF 파일' : '설스터디 칼럼'}
+                        </p>
+                        <p className="text-xs text-gray-500">멘토가 제공한 자료입니다</p>
+                      </div>
+                    </div>
+                    <Button
+                      onClick={handleDownloadFile}
+                      className="bg-indigo-600 hover:bg-indigo-700"
+                    >
+                      <Download className="w-4 h-4 mr-2" />
+                      다운로드
+                    </Button>
+                  </div>
+                </div>
+              )}
+
+              {assignment.learningMaterials && assignment.learningMaterials.length > 0 && (
+                <div>
+                  <h3 className="font-semibold text-gray-900 mb-3">보완 학습자료</h3>
+                  <div className="space-y-2">
+                    {assignment.learningMaterials.map((material, idx) => (
+                      <div
+                        key={idx}
+                        className="flex items-center justify-between p-3 bg-gray-50 rounded border"
+                      >
+                        <div className="flex items-center gap-2">
+                          <FileText className="w-5 h-5 text-blue-600" />
+                          <span className="text-sm text-gray-700">{material}</span>
+                        </div>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="text-blue-600 border-blue-200"
+                        >
+                          <Download className="w-4 h-4" />
+                        </Button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* 멘토 피드백 */}
+              {feedbacks.length > 0 && (
+                <div className="mt-6 pt-6 border-t">
+                  <h3 className="font-semibold text-gray-900 mb-3">💭 멘토 피드백</h3>
+                  <div className="space-y-3">
+                    {feedbacks.map((feedback) => (
+                      <div key={feedback.id} className="bg-blue-50 p-3 rounded border border-blue-100">
+                        <div className="flex items-center gap-2 mb-2">
+                          <Badge className="bg-blue-100 text-blue-700 text-xs">{feedback.subject}</Badge>
+                          {feedback.summary && (
+                            <Badge className="bg-yellow-100 text-yellow-700 text-xs">주요</Badge>
+                          )}
+                          <span className="text-xs text-gray-500 ml-auto">
+                            {new Date(feedback.createdAt).toLocaleDateString('ko-KR')}
+                          </span>
+                        </div>
+                        {feedback.summary && (
+                          <p className="text-sm font-medium text-blue-600 mb-1">{feedback.summary}</p>
+                        )}
+                        <p className="text-xs text-gray-700 leading-relaxed">
+                          {feedback.content}
+                        </p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* 과제 증명 탭 */}
+          {activeTab === 'proof' && (
+            <div>
         <h2 className="text-lg font-semibold text-gray-900 mb-4">📷 과제 증명</h2>
 
         {assignment.proofImages && assignment.proofImages.length > 0 && (
@@ -300,13 +373,16 @@ export default function AssignmentDetailPage() {
           </div>
         )}
 
-        <Button
-          onClick={() => setShowUploadDialog(true)}
-          className="w-full bg-indigo-600 hover:bg-indigo-700"
-        >
-          <Upload className="w-4 h-4 mr-2" />
-          증명 사진 추가
-        </Button>
+              <Button
+                onClick={() => setShowUploadDialog(true)}
+                className="w-full bg-indigo-600 hover:bg-indigo-700"
+              >
+                <Upload className="w-4 h-4 mr-2" />
+                증명 사진 추가
+              </Button>
+            </div>
+          )}
+        </div>
       </Card>
 
       {/* 파일 업로드 다이얼로그 */}

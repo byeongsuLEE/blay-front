@@ -29,6 +29,11 @@ function MentorSidebar({ isOpen, onClose }: SidebarProps) {
       href: '/mentor/feedback',
       icon: BookOpen,
     },
+    {
+      label: '보완점 관리',
+      href: '/mentor/weaknesses',
+      icon: BookOpen,
+    },
   ];
 
   return (

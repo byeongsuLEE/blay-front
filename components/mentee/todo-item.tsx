@@ -15,6 +15,12 @@ export interface TodoItemData {
   studyTimeMinutes?: number;
   isFixed: boolean; // 멘토가 고정한 할 일인지 여부
   assignmentId?: string;
+  // 요일 반복 설정
+  recurringDays?: ('월' | '화' | '수' | '목' | '금' | '토' | '일')[];
+  // 보완점 관련
+  weaknessId?: string; // 약점 ID
+  weaknessName?: string; // 약점 이름
+  learningMaterials?: string[]; // 학습지 파일 URL 배열
 }
 
 interface TodoItemProps {
