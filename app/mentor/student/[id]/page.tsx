@@ -10,8 +10,8 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { mentorAPI } from '@/lib/api';
 import { toast } from 'sonner';
-import { ArrowLeft, TrendingUp, CheckCircle2, FileText, MessageSquare, Plus } from 'lucide-react';
-import { format } from 'date-fns';
+import { ArrowLeft, TrendingUp, CheckCircle2, FileText, MessageSquare, Plus, Calendar } from 'lucide-react';
+import { format, eachDayOfInterval, startOfMonth, endOfMonth, isSameDay } from 'date-fns';
 import { ko } from 'date-fns/locale';
 
 interface StudentDetail {
@@ -51,6 +51,15 @@ interface CreateAssignmentInput {
   date: string;
   goalDescription: string;
   fileType: 'pdf' | 'column';
+  weaknessId?: string;
+  attachedFiles?: string[];
+}
+
+interface Weakness {
+  id: string;
+  name: string;
+  subject: string;
+  materials: string[];
 }
 
 interface AssignmentTemplate {
@@ -84,6 +93,16 @@ export default function MentorStudentDetailPage() {
     fileType: 'pdf',
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [selectedWeakness, setSelectedWeakness] = useState<string>('');
+  const [calendarMonth, setCalendarMonth] = useState(new Date());
+  const [draggedTemplate, setDraggedTemplate] = useState<AssignmentTemplate | null>(null);
+
+  // 샘플 보완점 데이터
+  const weaknesses: Weakness[] = [
+    { id: 'w1', name: '비문학 2지문', subject: '국어', materials: ['비문학_학습지_1.pdf', '비문학_분석법.pdf'] },
+    { id: 'w2', name: '영문법 시제', subject: '영어', materials: ['영문법_시제.pdf', '영문법_실전문제.pdf'] },
+    { id: 'w3', name: '미분 적분', subject: '수학', materials: ['미분적분_기초.pdf', '미분적분_심화.pdf'] },
+  ];
 
   useEffect(() => {
     loadStudentData();
@@ -162,6 +181,55 @@ export default function MentorStudentDetailPage() {
     return `${hours}시간 ${mins}분`;
   };
 
+  const handleDragStart = (e: React.DragEvent, template: AssignmentTemplate) => {
+    setDraggedTemplate(template);
+    e.dataTransfer.effectAllowed = 'copy';
+  };
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'copy';
+  };
+
+  const handleDropOnDate = async (date: string, e: React.DragEvent) => {
+    e.preventDefault();
+    
+    if (!draggedTemplate) {
+      toast.error('드래그된 항목이 없습니다');
+      return;
+    }
+
+    try {
+      setIsSubmitting(true);
+      
+      const assignmentToCreate: CreateAssignmentInput = {
+        title: draggedTemplate.title,
+        subject: draggedTemplate.subject,
+        date: date,
+        goalDescription: draggedTemplate.goalDescription,
+        fileType: draggedTemplate.fileType,
+      };
+
+      // 보완점이 선택된 경우 자동으로 파일 첨부
+      if (selectedWeakness) {
+        const weakness = weaknesses.find((w) => w.id === selectedWeakness);
+        if (weakness) {
+          assignmentToCreate.weaknessId = selectedWeakness;
+          assignmentToCreate.attachedFiles = weakness.materials;
+        }
+      }
+
+      await mentorAPI.createAssignment(studentId, assignmentToCreate);
+      toast.success(`${format(new Date(date), 'M월 d일', { locale: ko })}에 과제가 할당되었습니다`);
+      setDraggedTemplate(null);
+      loadStudentData();
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : '과제 할당에 실패했습니다');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
   const handleCreateAssignment = async () => {
     try {
       setIsSubmitting(true);
@@ -187,6 +255,16 @@ export default function MentorStudentDetailPage() {
         }
       }
 
+      // 보완점이 선택된 경우 자동으로 파일 첨부
+      if (selectedWeakness) {
+        const weakness = weaknesses.find((w) => w.id === selectedWeakness);
+        if (weakness) {
+          assignmentToCreate.weaknessId = selectedWeakness;
+          assignmentToCreate.attachedFiles = weakness.materials;
+          toast.success(`보완점: ${weakness.name}\n학습자료 ${weakness.materials.length}개가 자동으로 첨부되었습니다`);
+        }
+      }
+
       await mentorAPI.createAssignment(studentId, assignmentToCreate);
       toast.success('과제가 할당되었습니다');
       setShowAssignmentDialog(false);
@@ -198,6 +276,7 @@ export default function MentorStudentDetailPage() {
         fileType: 'pdf',
       });
       setSelectedTemplateId(null);
+      setSelectedWeakness('');
       setSelectionMode('template');
       loadStudentData();
     } catch (error) {
@@ -306,6 +385,92 @@ export default function MentorStudentDetailPage() {
           </div>
         </div>
       </Card>
+
+      {/* 드래그앤드롭 과제 할당 영역 */}
+      {templates.length > 0 && (
+        <Card className="mb-6 p-6 border-2 border-blue-300 bg-blue-50">
+          <div className="flex items-center gap-2 mb-4">
+            <Calendar className="w-5 h-5 text-blue-600" />
+            <h2 className="text-lg font-bold text-gray-900">드래그앤드롭으로 과제 할당</h2>
+          </div>
+
+          <div className="grid grid-cols-12 gap-4">
+            {/* 템플릿 목록 */}
+            <div className="col-span-4 space-y-3 max-h-96 overflow-y-auto">
+              <p className="text-sm font-medium text-gray-700 mb-2">저장된 과제 템플릿</p>
+              {templates.map((template) => (
+                <div
+                  key={template.id}
+                  draggable
+                  onDragStart={(e) => handleDragStart(e, template)}
+                  className="p-3 bg-white rounded-lg border-2 border-dashed border-blue-400 cursor-move hover:shadow-md transition hover:border-blue-600"
+                >
+                  <p className="font-medium text-sm text-gray-900">{template.title}</p>
+                  <div className="flex gap-2 mt-2 text-xs">
+                    <span className="px-2 py-1 bg-blue-100 text-blue-700 rounded">
+                      {template.subject}
+                    </span>
+                    <span className="px-2 py-1 bg-gray-100 text-gray-700 rounded">
+                      {template.fileType === 'pdf' ? 'PDF' : '칼럼'}
+                    </span>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* 달력 */}
+            <div className="col-span-8 bg-white p-4 rounded-lg border border-gray-200">
+              <div className="flex items-center justify-between mb-4">
+                <button
+                  onClick={() => setCalendarMonth(new Date(calendarMonth.getFullYear(), calendarMonth.getMonth() - 1, 1))}
+                  className="text-gray-600 hover:text-gray-900 font-medium"
+                >
+                  ←
+                </button>
+                <h3 className="font-bold text-gray-900">
+                  {format(calendarMonth, 'yyyy년 M월', { locale: ko })}
+                </h3>
+                <button
+                  onClick={() => setCalendarMonth(new Date(calendarMonth.getFullYear(), calendarMonth.getMonth() + 1, 1))}
+                  className="text-gray-600 hover:text-gray-900 font-medium"
+                >
+                  →
+                </button>
+              </div>
+
+              {/* 요일 헤더 */}
+              <div className="grid grid-cols-7 gap-1 mb-2">
+                {['일', '월', '화', '수', '목', '금', '토'].map((day) => (
+                  <div key={day} className="text-center font-semibold text-sm text-gray-600 h-8 flex items-center justify-center">
+                    {day}
+                  </div>
+                ))}
+              </div>
+
+              {/* 날짜 셀 */}
+              <div className="grid grid-cols-7 gap-1">
+                {eachDayOfInterval({
+                  start: startOfMonth(calendarMonth),
+                  end: endOfMonth(calendarMonth),
+                }).map((date) => (
+                  <div
+                    key={date.toISOString()}
+                    onDragOver={handleDragOver}
+                    onDrop={(e) => handleDropOnDate(format(date, 'yyyy-MM-dd'), e)}
+                    className={`aspect-square flex flex-col items-center justify-center rounded border-2 border-dashed text-xs font-medium transition cursor-move ${
+                      draggedTemplate
+                        ? 'border-green-400 bg-green-50 hover:bg-green-100'
+                        : 'border-gray-300 bg-gray-50 hover:border-gray-400'
+                    }`}
+                  >
+                    <span className="text-gray-900">{format(date, 'd')}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </Card>
+      )}
 
       {/* 탭 */}
       <Tabs defaultValue="assignments" className="bg-white rounded-lg">
@@ -596,6 +761,36 @@ export default function MentorStudentDetailPage() {
                   <option value="pdf">PDF 파일 업로드</option>
                   <option value="column">설스터디 칼럼</option>
                 </select>
+              </div>
+
+              {/* 보완점 선택 */}
+              <div className="border-t pt-4">
+                <Label htmlFor="weakness">보완점 선택 (선택)</Label>
+                <select
+                  id="weakness"
+                  value={selectedWeakness}
+                  onChange={(e) => setSelectedWeakness(e.target.value)}
+                  className="w-full px-3 py-2 border rounded-md text-sm"
+                >
+                  <option value="">보완점을 선택하면 학습자료가 자동으로 첨부됩니다</option>
+                  {weaknesses.map((w) => (
+                    <option key={w.id} value={w.id}>
+                      {w.name} ({w.subject}) - {w.materials.length}개 자료
+                    </option>
+                  ))}
+                </select>
+                {selectedWeakness && (
+                  <div className="mt-3 p-3 bg-blue-50 border border-blue-200 rounded text-sm">
+                    <p className="font-medium text-blue-900 mb-2">선택된 보완점 자료:</p>
+                    <ul className="list-disc list-inside text-blue-800 space-y-1">
+                      {weaknesses
+                        .find((w) => w.id === selectedWeakness)
+                        ?.materials.map((m) => (
+                          <li key={m} className="text-xs">{m}</li>
+                        ))}
+                    </ul>
+                  </div>
+                )}
               </div>
             </div>
           )}

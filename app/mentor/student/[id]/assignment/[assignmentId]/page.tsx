@@ -43,6 +43,13 @@ interface Comment {
   createdAt: string;
 }
 
+interface Memo {
+  id: string;
+  content: string;
+  createdAt: string;
+  type: 'memo' | 'question';
+}
+
 export default function MentorAssignmentDetailPage() {
   const params = useParams();
   const router = useRouter();
@@ -61,6 +68,10 @@ export default function MentorAssignmentDetailPage() {
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [newComment, setNewComment] = useState('');
+  const [memos, setMemos] = useState<Memo[]>([]);
+  const [newMemo, setNewMemo] = useState('');
+  const [memoType, setMemoType] = useState<'memo' | 'question'>('memo');
+  const [showMemoDialog, setShowMemoDialog] = useState(false);
 
   useEffect(() => {
     if (studentId && assignmentId) {
@@ -178,6 +189,31 @@ export default function MentorAssignmentDetailPage() {
     }
   };
 
+  const handleAddMemo = async () => {
+    if (!newMemo.trim()) {
+      toast.error(memoType === 'memo' ? '메모를 입력해주세요' : '질문을 입력해주세요');
+      return;
+    }
+
+    try {
+      setIsSubmitting(true);
+      const newMemoObj: Memo = {
+        id: `m${Date.now()}`,
+        content: newMemo,
+        createdAt: new Date().toISOString(),
+        type: memoType,
+      };
+      setMemos([...memos, newMemoObj]);
+      setNewMemo('');
+      setShowMemoDialog(false);
+      toast.success(memoType === 'memo' ? '메모가 저장되었습니다' : '질문이 등록되었습니다');
+    } catch (error) {
+      toast.error(memoType === 'memo' ? '메모 저장에 실패했습니다' : '질문 등록에 실패했습니다');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
   if (loading) {
     return <div className="flex items-center justify-center min-h-screen">로딩 중...</div>;
   }
@@ -286,6 +322,57 @@ export default function MentorAssignmentDetailPage() {
                 )}
                 <p className="text-sm text-gray-700 whitespace-pre-wrap leading-relaxed">
                   {feedback.content}
+                </p>
+              </div>
+            ))}
+          </div>
+        )}
+      </Card>
+
+      {/* 메모/질문 섹션 */}
+      <Card className="mb-6 p-6 border-2 border-purple-200 bg-gradient-to-br from-purple-50 to-pink-50">
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-xl font-bold text-purple-900">메모 & 질문</h2>
+          <Button
+            onClick={() => {
+              setShowMemoDialog(true);
+              setMemoType('memo');
+            }}
+            className="bg-purple-600 hover:bg-purple-700"
+          >
+            메모/질문 추가
+          </Button>
+        </div>
+
+        {memos.length === 0 ? (
+          <p className="text-center text-gray-500 py-6">메모 또는 질문이 없습니다</p>
+        ) : (
+          <div className="space-y-3">
+            {memos.map((memo) => (
+              <div
+                key={memo.id}
+                className={`p-4 rounded-lg border-l-4 ${
+                  memo.type === 'memo'
+                    ? 'bg-yellow-50 border-yellow-400'
+                    : 'bg-blue-50 border-blue-400'
+                }`}
+              >
+                <div className="flex items-center gap-2 mb-2">
+                  <span
+                    className={`text-xs px-2 py-1 rounded font-medium ${
+                      memo.type === 'memo'
+                        ? 'bg-yellow-100 text-yellow-700'
+                        : 'bg-blue-100 text-blue-700'
+                    }`}
+                  >
+                    {memo.type === 'memo' ? '📝 메모' : '❓ 질문'}
+                  </span>
+                  <span className="text-xs text-gray-500 ml-auto">
+                    {format(new Date(memo.createdAt), 'M월 d일 HH:mm', { locale: ko })}
+                  </span>
+                </div>
+                <p className="text-sm text-gray-700 whitespace-pre-wrap">
+                  {memo.content}
                 </p>
               </div>
             ))}
@@ -408,6 +495,74 @@ export default function MentorAssignmentDetailPage() {
                 className="bg-blue-600 hover:bg-blue-700"
               >
                 {isSubmitting ? '저장 중...' : '피드백 저장'}
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* 메모/질문 추가 다이얼로그 */}
+      <Dialog open={showMemoDialog} onOpenChange={setShowMemoDialog}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>{memoType === 'memo' ? '메모 추가' : '질문 등록'}</DialogTitle>
+          </DialogHeader>
+
+          <div className="space-y-4">
+            {/* 메모 타입 선택 */}
+            <div className="flex gap-2">
+              <button
+                onClick={() => setMemoType('memo')}
+                className={`flex-1 px-4 py-2 rounded-lg font-medium transition ${
+                  memoType === 'memo'
+                    ? 'bg-yellow-100 text-yellow-700 border-2 border-yellow-400'
+                    : 'bg-gray-100 text-gray-700 border-2 border-gray-200'
+                }`}
+              >
+                📝 메모
+              </button>
+              <button
+                onClick={() => setMemoType('question')}
+                className={`flex-1 px-4 py-2 rounded-lg font-medium transition ${
+                  memoType === 'question'
+                    ? 'bg-blue-100 text-blue-700 border-2 border-blue-400'
+                    : 'bg-gray-100 text-gray-700 border-2 border-gray-200'
+                }`}
+              >
+                ❓ 질문
+              </button>
+            </div>
+
+            <div>
+              <Label htmlFor="memo-content">
+                {memoType === 'memo' ? '메모 내용' : '질문 내용'}
+              </Label>
+              <textarea
+                id="memo-content"
+                value={newMemo}
+                onChange={(e) => setNewMemo(e.target.value)}
+                placeholder={memoType === 'memo' ? '메모를 작성하세요...' : '학생이 실수한 부분이나 의문점을 질문으로 작성하세요...'}
+                className="w-full px-3 py-2 border rounded-md font-mono text-sm"
+                rows={5}
+              />
+            </div>
+
+            <div className="flex justify-end gap-2 pt-4">
+              <Button
+                variant="outline"
+                onClick={() => {
+                  setShowMemoDialog(false);
+                  setNewMemo('');
+                }}
+              >
+                취소
+              </Button>
+              <Button
+                onClick={handleAddMemo}
+                disabled={isSubmitting}
+                className={memoType === 'memo' ? 'bg-yellow-600 hover:bg-yellow-700' : 'bg-blue-600 hover:bg-blue-700'}
+              >
+                {isSubmitting ? '저장 중...' : memoType === 'memo' ? '메모 저장' : '질문 등록'}
               </Button>
             </div>
           </div>
