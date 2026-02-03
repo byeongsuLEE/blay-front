@@ -16,7 +16,7 @@ import { Label } from '@/components/ui/label';
 import { toast } from 'sonner';
 import { menteeAPI } from '@/lib/api';
 import { useRouter } from 'next/navigation';
-import { Plus, ChevronLeft, ChevronRight, Star, Calendar, Bell } from 'lucide-react';
+import { Plus, ChevronLeft, ChevronRight, Star, Calendar, Bell, BookOpen, User } from 'lucide-react';
 import { MiniCalendar } from '@/components/mentee/mini-calendar'; // Import MiniCalendar
 
 export default function MenteePlannerPage() {
@@ -32,6 +32,7 @@ export default function MenteePlannerPage() {
   const [showNotification, setShowNotification] = useState(false);
   const [selectedRecurringDays, setSelectedRecurringDays] = useState<('월' | '화' | '수' | '목' | '금' | '토' | '일')[]>([]);
   const [selectedWeakness, setSelectedWeakness] = useState<string>('');
+  const [activeTab, setActiveTab] = useState<'planner' | 'mypage' | 'feedback'>('planner');
   const quote = '명언'; // Declare quote variable
   const daysUntilGoal = 10; // Declare daysUntilGoal variable
 
@@ -300,6 +301,46 @@ export default function MenteePlannerPage() {
 
       {/* 메인 컨텐츠 */}
       <div className="max-w-full mx-auto px-4 lg:px-8 py-8">
+        {/* 탭 네비게이션 */}
+        <div className="flex gap-4 mb-8 border-b-2 border-pink-200">
+          <button
+            onClick={() => setActiveTab('planner')}
+            className={`px-4 py-3 font-semibold flex items-center gap-2 transition border-b-4 ${
+              activeTab === 'planner'
+                ? 'border-pink-500 text-pink-600'
+                : 'border-transparent text-gray-600 hover:text-pink-500'
+            }`}
+          >
+            <Calendar className="w-5 h-5" />
+            플래너
+          </button>
+          <button
+            onClick={() => setActiveTab('mypage')}
+            className={`px-4 py-3 font-semibold flex items-center gap-2 transition border-b-4 ${
+              activeTab === 'mypage'
+                ? 'border-pink-500 text-pink-600'
+                : 'border-transparent text-gray-600 hover:text-pink-500'
+            }`}
+          >
+            <User className="w-5 h-5" />
+            마이페이지
+          </button>
+          <button
+            onClick={() => setActiveTab('feedback')}
+            className={`px-4 py-3 font-semibold flex items-center gap-2 transition border-b-4 ${
+              activeTab === 'feedback'
+                ? 'border-pink-500 text-pink-600'
+                : 'border-transparent text-gray-600 hover:text-pink-500'
+            }`}
+          >
+            <BookOpen className="w-5 h-5" />
+            피드백
+          </button>
+        </div>
+
+        {/* 플래너 탭 */}
+        {activeTab === 'planner' && (
+        <>
         {/* 헤더 - 날짜 및 네비게이션 */}
         <div className="flex items-center justify-between mb-8">
           <div>
@@ -423,20 +464,178 @@ export default function MenteePlannerPage() {
             <CommentSection date={dateString} onCommentAdded={loadPlannerData} />
           </Card>
         </div>
-      </div>
 
-      {/* 통계 카드 */}
-      <div className="bg-gradient-to-br from-pink-300 to-rose-400 rounded-2xl shadow-lg p-6 text-white">
-        <div className="space-y-4">
-          <div>
-            <p className="text-sm">오늘의 공부시간</p>
-            <p className="text-3xl font-bold">{Math.floor(totalStudyTime / 60)}h {totalStudyTime % 60}m</p>
-          </div>
-          <div>
-            <p className="text-sm">달성률</p>
-            <p className="text-2xl font-bold">{completionRate}%</p>
+        {/* 통계 카드 */}
+        <div className="mt-8 bg-gradient-to-br from-pink-300 to-rose-400 rounded-2xl shadow-lg p-6 text-white">
+          <div className="space-y-4">
+            <div>
+              <p className="text-sm">오늘의 공부시간</p>
+              <p className="text-3xl font-bold">{Math.floor(totalStudyTime / 60)}h {totalStudyTime % 60}m</p>
+            </div>
+            <div>
+              <p className="text-sm">달성률</p>
+              <p className="text-2xl font-bold">{completionRate}%</p>
+            </div>
           </div>
         </div>
+        </>
+        )}
+
+        {/* 마이페이지 탭 */}
+        {activeTab === 'mypage' && (
+          <div>
+            <h2 className="text-3xl font-bold text-pink-700 mb-8">마이페이지</h2>
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <Card className="p-6 rounded-2xl border-2 border-indigo-200">
+                <h3 className="text-lg font-bold text-indigo-900 mb-4">학습 현황</h3>
+                <div className="space-y-4">
+                  <div>
+                    <p className="text-sm text-gray-600">총 학습시간</p>
+                    <p className="text-3xl font-bold text-indigo-600">{Math.floor(totalStudyTime / 60)}h {totalStudyTime % 60}m</p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-gray-600">과제 완성률</p>
+                    <p className="text-3xl font-bold text-indigo-600">{completionRate}%</p>
+                  </div>
+                </div>
+              </Card>
+              <Card className="p-6 rounded-2xl border-2 border-green-200">
+                <h3 className="text-lg font-bold text-green-900 mb-4">개인 정보</h3>
+                <div className="space-y-3 text-sm">
+                  <p><span className="font-medium text-gray-700">이름:</span> <span className="text-gray-600">학생</span></p>
+                  <p><span className="font-medium text-gray-700">이메일:</span> <span className="text-gray-600">student@example.com</span></p>
+                  <p><span className="font-medium text-gray-700">가입일:</span> <span className="text-gray-600">2024년 1월</span></p>
+                </div>
+              </Card>
+            </div>
+          </div>
+        )}
+
+        {/* 피드백 탭 */}
+        {activeTab === 'feedback' && (
+          <div className="space-y-8">
+            <h2 className="text-3xl font-bold text-pink-700">피드백</h2>
+
+            {/* 오늘의 핵심 피드백 */}
+            <Card className="p-6 rounded-2xl border-4 border-red-300 bg-gradient-to-br from-red-50 to-red-100 shadow-lg">
+              <div className="flex items-center gap-3 mb-4">
+                <div className="w-4 h-4 bg-red-500 rounded-full"></div>
+                <h3 className="text-xl font-bold text-red-900">오늘의 핵심 피드백</h3>
+              </div>
+              {feedbacks.length > 0 ? (
+                <div className="bg-white p-4 rounded-lg">
+                  <p className="text-sm font-semibold text-gray-600 mb-2">{feedbacks[0]?.subject || '국어'}</p>
+                  <p className="text-lg font-bold text-gray-900 mb-3">{feedbacks[0]?.summary || '오늘 공부를 잘하셨습니다!'}</p>
+                  <p className="text-sm text-gray-700 leading-relaxed">{feedbacks[0]?.content || '더욱 열심히 해주세요.'}</p>
+                </div>
+              ) : (
+                <div className="bg-white p-4 rounded-lg text-center text-gray-500">
+                  오늘은 아직 피드백이 없습니다
+                </div>
+              )}
+            </Card>
+
+            {/* 어제의 피드백 */}
+            <div>
+              <h3 className="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">
+                <Calendar className="w-5 h-5 text-gray-600" />
+                어제의 피드백
+              </h3>
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                {feedbacks.slice(0, 2).map((feedback, idx) => (
+                  <Card
+                    key={idx}
+                    className="p-4 rounded-lg border-2 border-gray-200 hover:border-gray-400 hover:shadow-md transition cursor-pointer"
+                  >
+                    <div className="flex items-center gap-2 mb-2">
+                      <span className="px-2 py-1 bg-blue-100 text-blue-700 text-xs font-semibold rounded">
+                        {feedback.subject}
+                      </span>
+                    </div>
+                    <p className="text-sm font-medium text-gray-900 line-clamp-2">
+                      {feedback.summary || feedback.content}
+                    </p>
+                  </Card>
+                ))}
+              </div>
+            </div>
+
+            {/* 피드백 필터 및 목록 */}
+            <div>
+              <div className="mb-6">
+                <h3 className="text-lg font-bold text-gray-800 mb-4">피드백 보기</h3>
+                <div className="flex gap-2 flex-wrap">
+                  {['전체', '국어', '영어', '수학', '플래너'].map((filter) => (
+                    <button
+                      key={filter}
+                      className="px-4 py-2 rounded-full font-medium transition border-2 text-sm"
+                      style={
+                        filter === '전체'
+                          ? { backgroundColor: '#ec4899', borderColor: '#ec4899', color: 'white' }
+                          : { backgroundColor: 'transparent', borderColor: '#e5e7eb', color: '#6b7280' }
+                      }
+                    >
+                      {filter}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* 피드백 카드 목록 */}
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                {feedbacks.map((feedback, idx) => (
+                  <Card
+                    key={idx}
+                    onClick={() => router.push(`/mentee/assignment/${feedback.id}`)}
+                    className={`p-5 rounded-lg border-2 hover:shadow-lg transition cursor-pointer ${
+                      feedback.subject === '국어'
+                        ? 'border-red-200 bg-red-50 hover:border-red-400'
+                        : feedback.subject === '영어'
+                        ? 'border-blue-200 bg-blue-50 hover:border-blue-400'
+                        : feedback.subject === '수학'
+                        ? 'border-green-200 bg-green-50 hover:border-green-400'
+                        : 'border-gray-200 bg-gray-50 hover:border-gray-400'
+                    }`}
+                  >
+                    <div className="flex items-start justify-between mb-2">
+                      <span
+                        className="px-3 py-1 rounded-full text-xs font-bold text-white"
+                        style={
+                          feedback.subject === '국어'
+                            ? { backgroundColor: '#dc2626' }
+                            : feedback.subject === '영어'
+                            ? { backgroundColor: '#2563eb' }
+                            : feedback.subject === '수학'
+                            ? { backgroundColor: '#16a34a' }
+                            : { backgroundColor: '#6b7280' }
+                        }
+                      >
+                        {feedback.subject}
+                      </span>
+                      {feedback.summary && (
+                        <span className="text-xs px-2 py-1 bg-yellow-100 text-yellow-700 rounded font-bold">
+                          핵심
+                        </span>
+                      )}
+                    </div>
+                    <p className="text-sm font-semibold text-gray-900 mb-2 line-clamp-2">
+                      {feedback.summary || feedback.content.slice(0, 40) + '...'}
+                    </p>
+                    <p className="text-xs text-gray-600 line-clamp-3">
+                      {feedback.content}
+                    </p>
+                    <div className="mt-3 flex items-center justify-between pt-3 border-t border-gray-300">
+                      <span className="text-xs text-gray-500">
+                        {format(new Date(feedback.createdAt), 'M월 d일', { locale: ko })}
+                      </span>
+                      <span className="text-xs font-medium text-pink-600">→ 과제 보기</span>
+                    </div>
+                  </Card>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* 할 일 추가 다이얼로그 */}
