@@ -43,12 +43,20 @@ interface DraggedItem {
   data: TaskTemplate | Weakness;
 }
 
+interface DateAssignment {
+  date: string;
+  tasks: TaskTemplate[];
+  weaknesses: Weakness[];
+}
+
 export default function AssignmentPage() {
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const [selectedStudents, setSelectedStudents] = useState<string[]>([]);
   const [draggedItem, setDraggedItem] = useState<DraggedItem | null>(null);
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
   const [searchStudent, setSearchStudent] = useState('');
+  const [rightPanelTab, setRightPanelTab] = useState<'tasks' | 'weaknesses'>('tasks');
+  const [assignments, setAssignments] = useState<DateAssignment[]>([]);
 
   // 샘플 데이터
   const students: Student[] = [
@@ -156,11 +164,59 @@ export default function AssignmentPage() {
       return;
     }
 
+    assignItem(dateStr);
+  };
+
+  const handleAddByButton = (item: DraggedItem) => {
+    if (selectedStudents.length === 0) {
+      toast.error('학생을 선택해주세요');
+      return;
+    }
+
+    if (!selectedDate) {
+      toast.error('달력에서 날짜를 선택해주세요');
+      return;
+    }
+
+    setDraggedItem(item);
+    assignItem(selectedDate);
+  };
+
+  const assignItem = (dateStr: string) => {
+    if (!draggedItem) return;
+
     const studentNames = selectedStudents
       .map((id) => students.find((s) => s.id === id)?.name)
       .join(', ');
 
     const itemName = draggedItem.type === 'task' ? draggedItem.data.title : draggedItem.data.name;
+
+    // 할당 데이터 저장
+    setAssignments((prev) => {
+      const existingAssignment = prev.find((a) => a.date === dateStr);
+      
+      if (existingAssignment) {
+        if (draggedItem.type === 'task') {
+          return prev.map((a) =>
+            a.date === dateStr && !a.tasks.find((t) => t.id === draggedItem.data.id)
+              ? { ...a, tasks: [...a.tasks, draggedItem.data as TaskTemplate] }
+              : a
+          );
+        } else {
+          return prev.map((a) =>
+            a.date === dateStr && !a.weaknesses.find((w) => w.id === draggedItem.data.id)
+              ? { ...a, weaknesses: [...a.weaknesses, draggedItem.data as Weakness] }
+              : a
+          );
+        }
+      } else {
+        if (draggedItem.type === 'task') {
+          return [...prev, { date: dateStr, tasks: [draggedItem.data as TaskTemplate], weaknesses: [] }];
+        } else {
+          return [...prev, { date: dateStr, tasks: [], weaknesses: [draggedItem.data as Weakness] }];
+        }
+      }
+    });
 
     toast.success(
       `${studentNames}에게\n${itemName}\n${format(new Date(dateStr), 'M월 d일', { locale: ko })}에 할당했습니다`
@@ -280,24 +336,44 @@ export default function AssignmentPage() {
                 {days.map((date) => {
                   const dateStr = format(date, 'yyyy-MM-dd');
                   const isSelected = selectedDate === dateStr;
+                  const dateAssignment = assignments.find((a) => a.date === dateStr);
 
                   return (
                     <div
                       key={dateStr}
+                      onClick={() => setSelectedDate(dateStr)}
                       onDragOver={handleDragOver}
                       onDrop={() => handleDropOnDate(dateStr)}
-                      className={`aspect-square flex flex-col items-center justify-center rounded-lg border-2 border-dashed transition cursor-move min-h-20 p-2 ${
+                      className={`flex flex-col rounded-lg border-2 transition cursor-move min-h-24 p-2 ${
                         draggedItem && selectedStudents.length > 0
                           ? 'border-green-400 bg-green-50 hover:bg-green-100'
-                          : 'border-gray-300 bg-gray-50'
-                      } ${isSelected ? 'ring-2 ring-indigo-400' : ''}`}
+                          : isSelected
+                          ? 'border-indigo-400 bg-indigo-50'
+                          : 'border-gray-300 bg-gray-50 hover:border-gray-400'
+                      }`}
                     >
-                      <span className="text-lg font-semibold text-gray-900">
+                      <span className="text-sm font-semibold text-gray-900">
                         {format(date, 'd')}
                       </span>
-                      <span className="text-xs text-gray-500 mt-1">
+                      <span className="text-xs text-gray-500">
                         {format(date, 'EEE', { locale: ko })}
                       </span>
+
+                      {/* 할당 항목 표시 */}
+                      {dateAssignment && (
+                        <div className="mt-1 space-y-1 text-xs flex-1 overflow-y-auto">
+                          {dateAssignment.tasks.length > 0 && (
+                            <div className="text-blue-700 font-medium">
+                              과제: {dateAssignment.tasks.length}
+                            </div>
+                          )}
+                          {dateAssignment.weaknesses.length > 0 && (
+                            <div className="text-amber-700 font-medium">
+                              보완: {dateAssignment.weaknesses.length}
+                            </div>
+                          )}
+                        </div>
+                      )}
                     </div>
                   );
                 })}
@@ -307,65 +383,91 @@ export default function AssignmentPage() {
 
           {/* 오른쪽: 과제 & 보완점 목록 */}
           <div className="col-span-3 bg-white rounded-lg shadow-sm border border-gray-200 flex flex-col overflow-hidden">
-            <div className="border-b p-4">
-              <h2 className="text-lg font-semibold text-gray-900 mb-4">할당 항목</h2>
-              <div className="space-y-3 max-h-64 overflow-y-auto">
-                {/* 과제 템플릿 */}
-                <div>
-                  <p className="text-xs font-semibold text-gray-600 uppercase mb-2 flex items-center gap-2">
-                    <FileText className="w-4 h-4" />
-                    과제 템플릿
-                  </p>
-                  <div className="space-y-2">
-                    {taskTemplates.map((task) => (
-                      <div
-                        key={task.id}
-                        draggable
-                        onDragStart={() => handleDragStart({ type: 'task', data: task })}
-                        className="p-3 bg-gradient-to-r from-blue-50 to-blue-100 rounded-lg border border-blue-200 cursor-move hover:shadow-md transition"
-                      >
-                        <p className="text-sm font-medium text-gray-900">{task.title}</p>
-                        <div className="flex gap-2 mt-2">
-                          <span className="text-xs px-2 py-1 bg-blue-200 text-blue-700 rounded">
-                            {task.subject}
-                          </span>
-                          <span className="text-xs px-2 py-1 bg-gray-200 text-gray-700 rounded">
-                            {task.fileType === 'pdf' ? 'PDF' : '칼럼'}
-                          </span>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
+            {/* 탭 */}
+            <div className="flex border-b">
+              <button
+                onClick={() => setRightPanelTab('tasks')}
+                className={`flex-1 px-4 py-3 font-medium text-center transition ${
+                  rightPanelTab === 'tasks'
+                    ? 'text-blue-600 border-b-2 border-blue-600 bg-blue-50'
+                    : 'text-gray-600 hover:bg-gray-50'
+                }`}
+              >
+                <FileText className="w-4 h-4 inline mr-2" />
+                과제 템플릿
+              </button>
+              <button
+                onClick={() => setRightPanelTab('weaknesses')}
+                className={`flex-1 px-4 py-3 font-medium text-center transition ${
+                  rightPanelTab === 'weaknesses'
+                    ? 'text-amber-600 border-b-2 border-amber-600 bg-amber-50'
+                    : 'text-gray-600 hover:bg-gray-50'
+                }`}
+              >
+                <AlertCircle className="w-4 h-4 inline mr-2" />
+                보완점
+              </button>
+            </div>
 
-                {/* 보완점 */}
-                <div>
-                  <p className="text-xs font-semibold text-gray-600 uppercase mb-2 flex items-center gap-2">
-                    <AlertCircle className="w-4 h-4" />
-                    보완점
-                  </p>
-                  <div className="space-y-2">
-                    {weaknesses.map((weakness) => (
-                      <div
-                        key={weakness.id}
-                        draggable
-                        onDragStart={() => handleDragStart({ type: 'weakness', data: weakness })}
-                        className="p-3 bg-gradient-to-r from-amber-50 to-amber-100 rounded-lg border border-amber-200 cursor-move hover:shadow-md transition"
-                      >
-                        <p className="text-sm font-medium text-gray-900">{weakness.name}</p>
-                        <div className="mt-2 space-y-1">
-                          <span className="text-xs px-2 py-1 bg-amber-200 text-amber-700 rounded block w-fit">
-                            {weakness.subject}
-                          </span>
-                          <p className="text-xs text-gray-600 mt-1">
-                            자료: {weakness.materials.length}개
-                          </p>
-                        </div>
+            {/* 탭 콘텐츠 */}
+            <div className="flex-1 overflow-y-auto p-4">
+              {rightPanelTab === 'tasks' ? (
+                <div className="space-y-3">
+                  {taskTemplates.map((task) => (
+                    <div
+                      key={task.id}
+                      draggable
+                      onDragStart={() => handleDragStart({ type: 'task', data: task })}
+                      className="p-3 bg-gradient-to-r from-blue-50 to-blue-100 rounded-lg border border-blue-200 cursor-move hover:shadow-md transition"
+                    >
+                      <p className="text-sm font-medium text-gray-900">{task.title}</p>
+                      <div className="flex gap-2 mt-2">
+                        <span className="text-xs px-2 py-1 bg-blue-200 text-blue-700 rounded">
+                          {task.subject}
+                        </span>
+                        <span className="text-xs px-2 py-1 bg-gray-200 text-gray-700 rounded">
+                          {task.fileType === 'pdf' ? 'PDF' : '칼럼'}
+                        </span>
                       </div>
-                    ))}
-                  </div>
+                      <Button
+                        onClick={() => handleAddByButton({ type: 'task', data: task })}
+                        size="sm"
+                        className="w-full mt-2 bg-blue-600 hover:bg-blue-700 text-white text-xs"
+                      >
+                        + 추가
+                      </Button>
+                    </div>
+                  ))}
                 </div>
-              </div>
+              ) : (
+                <div className="space-y-3">
+                  {weaknesses.map((weakness) => (
+                    <div
+                      key={weakness.id}
+                      draggable
+                      onDragStart={() => handleDragStart({ type: 'weakness', data: weakness })}
+                      className="p-3 bg-gradient-to-r from-amber-50 to-amber-100 rounded-lg border border-amber-200 cursor-move hover:shadow-md transition"
+                    >
+                      <p className="text-sm font-medium text-gray-900">{weakness.name}</p>
+                      <div className="mt-2 space-y-1">
+                        <span className="text-xs px-2 py-1 bg-amber-200 text-amber-700 rounded block w-fit">
+                          {weakness.subject}
+                        </span>
+                        <p className="text-xs text-gray-600 mt-1">
+                          자료: {weakness.materials.length}개
+                        </p>
+                      </div>
+                      <Button
+                        onClick={() => handleAddByButton({ type: 'weakness', data: weakness })}
+                        size="sm"
+                        className="w-full mt-2 bg-amber-600 hover:bg-amber-700 text-white text-xs"
+                      >
+                        + 추가
+                      </Button>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
 
             {/* 상태 표시 */}
@@ -375,11 +477,17 @@ export default function AssignmentPage() {
                 <span className="text-gray-700">선택 학생: {selectedStudents.length}</span>
               </div>
               <div className="flex items-center gap-2">
-                <div className="w-3 h-3 rounded-full bg-green-600"></div>
-                <span className="text-gray-700">
-                  {draggedItem ? `${draggedItem.data.title || draggedItem.data.name} 준비됨` : '항목 드래그'}
-                </span>
+                <div className="w-3 h-3 rounded-full bg-blue-600"></div>
+                <span className="text-gray-700">선택 날짜: {selectedDate ? format(new Date(selectedDate), 'M월 d일', { locale: ko }) : '없음'}</span>
               </div>
+              {draggedItem && (
+                <div className="flex items-center gap-2">
+                  <div className="w-3 h-3 rounded-full bg-green-600"></div>
+                  <span className="text-gray-700">
+                    {draggedItem.data.title || draggedItem.data.name} 준비됨
+                  </span>
+                </div>
+              )}
             </div>
           </div>
         </div>
