@@ -34,6 +34,8 @@ export default function MenteePlannerPage() {
   const [selectedWeakness, setSelectedWeakness] = useState<string>('');
   const [activeTab, setActiveTab] = useState<'planner' | 'mypage' | 'feedback'>('planner');
   const [feedbackFilter, setFeedbackFilter] = useState<string>('전체');
+  const [selectedSubjectDropdown, setSelectedSubjectDropdown] = useState<string | null>(null);
+  const [selectedFeedbackId, setSelectedFeedbackId] = useState<string | null>(null);
   const quote = '명언'; // Declare quote variable
   const daysUntilGoal = 10; // Declare daysUntilGoal variable
 
@@ -186,7 +188,7 @@ export default function MenteePlannerPage() {
           {
             id: 'f10',
             subject: '국어',
-            content: '작문 실력이 많이 발전했습니다. 더 다양한 표현을 사용해보세요.',
+            content: '작문 실력이 많이 발전했습니다. 더 다양한 ���현을 사용해보세요.',
             createdAt: new Date(Date.now() - 259200000).toISOString(),
           },
           {
@@ -660,17 +662,58 @@ export default function MenteePlannerPage() {
                 <h3 className="text-lg font-bold text-gray-800 mb-4">피드백 보기</h3>
                 <div className="flex gap-2 flex-wrap">
                   {['전체', '국어', '영어', '수학', '플래너', '학습 목표'].map((filter) => (
-                    <button
-                      key={filter}
-                      onClick={() => setFeedbackFilter(filter)}
-                      className={`px-4 py-2 rounded-full font-medium transition border-2 text-sm ${
-                        feedbackFilter === filter
-                          ? 'bg-pink-500 border-pink-500 text-white'
-                          : 'bg-transparent border-gray-300 text-gray-700 hover:border-pink-400'
-                      }`}
-                    >
-                      {filter}
-                    </button>
+                    <div key={filter} className="relative">
+                      <button
+                        onClick={() => {
+                          if (['국어', '영어', '수학', '플래너'].includes(filter)) {
+                            setSelectedSubjectDropdown(selectedSubjectDropdown === filter ? null : filter);
+                            setSelectedFeedbackId(null);
+                          } else {
+                            setFeedbackFilter(filter);
+                            setSelectedSubjectDropdown(null);
+                            setSelectedFeedbackId(null);
+                          }
+                        }}
+                        className={`px-4 py-2 rounded-full font-medium transition border-2 text-sm ${
+                          feedbackFilter === filter || selectedSubjectDropdown === filter
+                            ? 'bg-pink-500 border-pink-500 text-white'
+                            : 'bg-transparent border-gray-300 text-gray-700 hover:border-pink-400'
+                        }`}
+                      >
+                        {filter}
+                      </button>
+
+                      {/* 드롭다운 */}
+                      {selectedSubjectDropdown === filter && ['국어', '영어', '수학', '플래너'].includes(filter) && (
+                        <div className="absolute top-full left-0 mt-2 bg-white border-2 border-gray-300 rounded-lg shadow-lg z-50 min-w-48">
+                          {feedbacks
+                            .filter(f => f.subject === filter)
+                            .map((feedback, idx) => (
+                              <button
+                                key={feedback.id}
+                                onClick={() => {
+                                  setSelectedFeedbackId(feedback.id);
+                                  setSelectedSubjectDropdown(null);
+                                }}
+                                className={`w-full px-4 py-3 text-left border-b last:border-b-0 hover:bg-gray-100 transition ${
+                                  selectedFeedbackId === feedback.id ? 'bg-pink-50 border-l-4 border-pink-500' : ''
+                                }`}
+                              >
+                                <div className="flex items-center gap-2">
+                                  {feedback.summary && (
+                                    <span className="text-xs px-2 py-1 bg-yellow-100 text-yellow-700 rounded font-bold">
+                                      핵심
+                                    </span>
+                                  )}
+                                </div>
+                                <p className="text-sm font-medium text-gray-900">
+                                  {feedback.summary || feedback.content.slice(0, 40) + '...'}
+                                </p>
+                              </button>
+                            ))}
+                        </div>
+                      )}
+                    </div>
                   ))}
                 </div>
               </div>
@@ -678,7 +721,12 @@ export default function MenteePlannerPage() {
               {/* 피드백 카드 목록 */}
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
                 {feedbacks
-                  .filter(f => feedbackFilter === '전체' || f.subject === feedbackFilter || (feedbackFilter === '학습 목표' && f.summary))
+                  .filter(f => {
+                    if (selectedFeedbackId) {
+                      return f.id === selectedFeedbackId;
+                    }
+                    return feedbackFilter === '전체' || f.subject === feedbackFilter || (feedbackFilter === '학습 목표' && f.summary);
+                  })
                   .map((feedback, idx) => (
                     <button
                       key={idx}
