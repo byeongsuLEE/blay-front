@@ -129,6 +129,7 @@ export default function MenteePlannerPage() {
           {
             id: 'f1',
             subject: '국어',
+            learningGoal: '문법 이해',
             summary: '문법 이해가 우수합니다',
             content: '교과서 내용을 잘 이해하고 있으신 것 같습니다. 다만 작문에서 문장 구조를 더 신경써주세요.',
             createdAt: new Date().toISOString(),
@@ -136,6 +137,7 @@ export default function MenteePlannerPage() {
           {
             id: 'f2',
             subject: '영어',
+            learningGoal: '리스닝',
             summary: '발음과 억양이 개선되었습니다',
             content: '리스닝 실력이 눈에 띄게 향상되었습니다. 문법은 더 꾸준한 연습이 필요합니다.',
             createdAt: new Date().toISOString(),
@@ -143,6 +145,7 @@ export default function MenteePlannerPage() {
           {
             id: 'f3',
             subject: '수학',
+            learningGoal: '미적분',
             summary: '개념 이해도가 높습니다',
             content: '미분과 적분 개념을 잘 이해했습니다. 응용문제에 좀 더 집중해보세요.',
             createdAt: new Date().toISOString(),
@@ -150,12 +153,14 @@ export default function MenteePlannerPage() {
           {
             id: 'f4',
             subject: '국어',
+            learningGoal: '독해',
             content: '비문학 읽기 속도가 많이 개선되었습니다. 어휘력을 더 넓혀보세요.',
             createdAt: new Date(Date.now() - 86400000).toISOString(),
           },
           {
             id: 'f5',
             subject: '영어',
+            learningGoal: '문법',
             summary: '문법 실력이 향상되었습니다',
             content: '현재형과 과거형을 잘 구분하고 있습니다. 더 복잡한 시제에 도전해보세요.',
             createdAt: new Date(Date.now() - 86400000).toISOString(),
@@ -163,24 +168,28 @@ export default function MenteePlannerPage() {
           {
             id: 'f6',
             subject: '수학',
+            learningGoal: '계산',
             content: '계산 능력이 빨라졌습니다. 실수를 줄이기 위해 검산 습관을 들여보세요.',
             createdAt: new Date(Date.now() - 86400000).toISOString(),
           },
           {
             id: 'f7',
             subject: '국어',
+            learningGoal: '어휘',
             content: '한자 단어를 많이 배웠습니다. 일상 생활에서도 써보세요.',
             createdAt: new Date(Date.now() - 172800000).toISOString(),
           },
           {
             id: 'f8',
             subject: '영어',
+            learningGoal: '회화',
             content: '회화 자신감이 생겼습니다. 더 많은 원어민과 대화해보세요.',
             createdAt: new Date(Date.now() - 172800000).toISOString(),
           },
           {
             id: 'f9',
             subject: '수학',
+            learningGoal: '문제풀이',
             summary: '문제 풀이 방법이 체계적입니다',
             content: '단계별 풀이가 명확합니다. 더 빠른 풀이법을 익혀보세요.',
             createdAt: new Date(Date.now() - 259200000).toISOString(),
@@ -188,12 +197,14 @@ export default function MenteePlannerPage() {
           {
             id: 'f10',
             subject: '국어',
-            content: '작문 실력이 많이 발전했습니다. 더 다양한 ���현을 사용해보세요.',
+            learningGoal: '작문',
+            content: '작문 실력이 많이 발전했습니다. 더 다양한 표현을 사용해보세요.',
             createdAt: new Date(Date.now() - 259200000).toISOString(),
           },
           {
             id: 'f11',
             subject: '플래너',
+            learningGoal: '시간관리',
             summary: '시간 관리가 잘 되고 있습니다',
             content: '계획한 일정을 잘 따르고 있습니다. 이 페이스를 유지해주세요.',
             createdAt: new Date().toISOString(),
@@ -201,6 +212,7 @@ export default function MenteePlannerPage() {
           {
             id: 'f12',
             subject: '영어',
+            learningGoal: '어휘',
             content: '단어 암기율이 높습니다. 꾸준한 복습으로 장기기억을 만들어보세요.',
             createdAt: new Date(Date.now() - 345600000).toISOString(),
           },
@@ -660,72 +672,70 @@ export default function MenteePlannerPage() {
             <div>
               <div className="mb-6">
                 <h3 className="text-lg font-bold text-gray-800 mb-4">피드백 보기</h3>
-                <div className="flex gap-2 flex-wrap">
+                
+                {/* 주요 필터 버튼 */}
+                <div className="flex gap-2 flex-wrap mb-4">
                   {['전체', '국어', '영어', '수학', '플래너', '학습 목표'].map((filter) => (
-                    <div key={filter} className="relative">
-                      <button
-                        onClick={() => {
-                          if (['국어', '영어', '수학', '플래너'].includes(filter)) {
-                            setSelectedSubjectDropdown(selectedSubjectDropdown === filter ? null : filter);
-                            setSelectedFeedbackId(null);
-                          } else {
-                            setFeedbackFilter(filter);
-                            setSelectedSubjectDropdown(null);
-                            setSelectedFeedbackId(null);
-                          }
-                        }}
-                        className={`px-4 py-2 rounded-full font-medium transition border-2 text-sm ${
-                          feedbackFilter === filter || selectedSubjectDropdown === filter
-                            ? 'bg-pink-500 border-pink-500 text-white'
-                            : 'bg-transparent border-gray-300 text-gray-700 hover:border-pink-400'
-                        }`}
-                      >
-                        {filter}
-                      </button>
-
-                      {/* 드롭다운 */}
-                      {selectedSubjectDropdown === filter && ['국어', '영어', '수학', '플래너'].includes(filter) && (
-                        <div className="absolute top-full left-0 mt-2 bg-white border-2 border-gray-300 rounded-lg shadow-lg z-50 min-w-48">
-                          {feedbacks
-                            .filter(f => f.subject === filter)
-                            .map((feedback, idx) => (
-                              <button
-                                key={feedback.id}
-                                onClick={() => {
-                                  setSelectedFeedbackId(feedback.id);
-                                  setSelectedSubjectDropdown(null);
-                                }}
-                                className={`w-full px-4 py-3 text-left border-b last:border-b-0 hover:bg-gray-100 transition ${
-                                  selectedFeedbackId === feedback.id ? 'bg-pink-50 border-l-4 border-pink-500' : ''
-                                }`}
-                              >
-                                <div className="flex items-center gap-2">
-                                  {feedback.summary && (
-                                    <span className="text-xs px-2 py-1 bg-yellow-100 text-yellow-700 rounded font-bold">
-                                      핵심
-                                    </span>
-                                  )}
-                                </div>
-                                <p className="text-sm font-medium text-gray-900">
-                                  {feedback.summary || feedback.content.slice(0, 40) + '...'}
-                                </p>
-                              </button>
-                            ))}
-                        </div>
-                      )}
-                    </div>
+                    <button
+                      key={filter}
+                      onClick={() => {
+                        setFeedbackFilter(filter);
+                        setSelectedSubjectDropdown(null);
+                        setSelectedFeedbackId(null);
+                      }}
+                      className={`px-4 py-2 rounded-full font-medium transition border-2 text-sm ${
+                        feedbackFilter === filter
+                          ? 'bg-pink-500 border-pink-500 text-white'
+                          : 'bg-transparent border-gray-300 text-gray-700 hover:border-pink-400'
+                      }`}
+                    >
+                      {filter}
+                    </button>
                   ))}
                 </div>
+
+                {/* 학습목표 필터 (과목 선택 시 표시) */}
+                {feedbackFilter !== '전체' && feedbackFilter !== '학습 목표' && ['국어', '영어', '수학', '플래너'].includes(feedbackFilter) && (
+                  <div className="bg-gray-50 p-4 rounded-lg border-2 border-gray-200 mb-4">
+                    <p className="text-sm font-semibold text-gray-700 mb-3">{feedbackFilter} 학습목표 선택:</p>
+                    <div className="flex gap-2 flex-wrap">
+                      {Array.from(new Set(
+                        feedbacks
+                          .filter(f => f.subject === feedbackFilter)
+                          .map(f => f.learningGoal)
+                      )).map((goal) => (
+                        <button
+                          key={goal}
+                          onClick={() => setSelectedFeedbackId(goal)}
+                          className={`px-3 py-2 rounded-lg font-medium text-sm transition border-2 ${
+                            selectedFeedbackId === goal
+                              ? 'bg-pink-500 border-pink-500 text-white'
+                              : 'bg-white border-gray-300 text-gray-700 hover:border-pink-400'
+                          }`}
+                        >
+                          {goal}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </div>
 
               {/* 피드백 카드 목록 */}
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
                 {feedbacks
                   .filter(f => {
-                    if (selectedFeedbackId) {
-                      return f.id === selectedFeedbackId;
+                    if (feedbackFilter === '전체') {
+                      return true;
+                    } else if (feedbackFilter === '학습 목표') {
+                      return f.summary;
+                    } else if (['국어', '영어', '수학', '플래너'].includes(feedbackFilter)) {
+                      if (selectedFeedbackId) {
+                        return f.subject === feedbackFilter && f.learningGoal === selectedFeedbackId;
+                      }
+                      return f.subject === feedbackFilter;
                     }
-                    return feedbackFilter === '전체' || f.subject === feedbackFilter || (feedbackFilter === '학습 목표' && f.summary);
+                    return false;
                   })
                   .map((feedback, idx) => (
                     <button
